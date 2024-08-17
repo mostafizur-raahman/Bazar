@@ -4,6 +4,7 @@ conF();
 
 const _config = {
     port: process.env.PORT,
+    databaseURL: process.env.MONGO_CONNECTION_STR,
 };
 
 // can not override : readOnly
