@@ -51,7 +51,7 @@ const createUser = async (req, res, next) => {
         const token = generateToken(newUser._id);
 
         // Send the response
-        res.json({
+        return res.status(201).json({
             messgae: "User created succesfully",
             newUser,
             accessToken: token,
@@ -61,4 +61,47 @@ const createUser = async (req, res, next) => {
     }
 };
 
-export { createUser };
+const loginUser = async (req, res, next) => {
+    const generateToken = (userId) => {
+        return jwt.sign({ sub: userId }, config.jwt_secret, {
+            expiresIn: config.jwt_expire,
+        });
+    };
+
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return next(createHttpError(400, "All fields are required"));
+        }
+
+        const user = await userModel.findOne({
+            email: email,
+            isDeleted: false,
+        });
+
+        if (!user) {
+            return next(createHttpError(404, "User not found"));
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return next(
+                createHttpError(401, "Username or password is incorrect")
+            );
+        }
+
+        // crate a acces token
+
+        // Generate the JWT token
+        const token = generateToken(user._id);
+
+        return res.status(200).json({
+            message: "Login successfully",
+            accessToken: token,
+        });
+    } catch (error) {
+        next(createHttpError(500, "Error while creating login user"));
+    }
+};
+export { createUser, loginUser };
