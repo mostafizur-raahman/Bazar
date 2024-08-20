@@ -1,17 +1,23 @@
 import express from "express";
 import { config } from "./config/config.js";
-import createHttpError, { HttpError } from "http-errors";
+import createHttpError from "http-errors";
 import globalErrorHandler from "./middlewares/globalErrorHandler.js";
 import userRouter from "./user/userRouter.js";
+import morgan from "morgan";
 
 const app = express();
+
+// Setup morgan for logging
+if (config.env === "development") {
+    app.use(morgan("dev"));
+} else {
+    app.use(morgan("combined"));
+}
 
 // middlewares
 app.use(express.json());
 
 app.get("/", (req, res) => {
-    const error = createHttpError(400, "something went Wrong");
-    throw error;
     res.json({
         status: 200,
         message: "Hello world.",

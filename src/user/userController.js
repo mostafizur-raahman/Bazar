@@ -68,12 +68,13 @@ const loginUser = async (req, res, next) => {
         });
     };
 
-    try {
-        const { email, password } = req.body;
+    const validateuserInput = (email, password) => {
         if (!email || !password) {
             return next(createHttpError(400, "All fields are required"));
         }
+    };
 
+    const isUserExist = async (email) => {
         const user = await userModel.findOne({
             email: email,
             isDeleted: false,
@@ -83,15 +84,28 @@ const loginUser = async (req, res, next) => {
             return next(createHttpError(404, "User not found"));
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
+        return user;
+    };
+
+    
+    const isMatchPassword = async (password, userPassword) => {
+        const isMatch = await bcrypt.compare(password, userPassword);
 
         if (!isMatch) {
             return next(
                 createHttpError(401, "Username or password is incorrect")
             );
         }
+    };
 
-        // crate a acces token
+    try {
+        const { email, password } = req.body;
+
+        validateuserInput(email, password);
+
+        const user = await isUserExist(email);
+
+        await isMatchPassword(password, user.password);
 
         // Generate the JWT token
         const token = generateToken(user._id);
