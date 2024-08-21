@@ -2,8 +2,8 @@ import express from "express";
 import { config } from "./config/config.js";
 import createHttpError from "http-errors";
 import globalErrorHandler from "./middlewares/globalErrorHandler.js";
-import userRouter from "./user/userRouter.js";
 import morgan from "morgan";
+import router from "./routes/index.js";
 
 const app = express();
 
@@ -25,7 +25,7 @@ app.get("/", (req, res) => {
 });
 
 // routes
-app.use("/api/users", userRouter);
+app.use("/api", router);
 
 // global error handler
 app.use(globalErrorHandler);
