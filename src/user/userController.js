@@ -5,18 +5,18 @@ import jwt from "jsonwebtoken";
 import { config } from "../config/config.js";
 
 const createUser = async (req, res, next) => {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
     const validateUserInput = (name, email, password) => {
         if (!name || !email || !password) {
-            throw createHttpError(400, "All fields are required");
+            return next(createHttpError(400, "All fields are required"));
         }
     };
 
     const checkUserExists = async (email) => {
         const user = await userModel.findOne({ email, isDeleted: false });
         if (user) {
-            throw createHttpError(400, "User already exists");
+            return next(createHttpError(400, "User already exists"));
         }
     };
 
@@ -31,6 +31,7 @@ const createUser = async (req, res, next) => {
     };
 
     try {
+        console.debug("BODY _____________", req.body);
         // Validate user input
         validateUserInput(name, email, password);
 
@@ -44,8 +45,11 @@ const createUser = async (req, res, next) => {
         const newUser = await userModel.create({
             name,
             email,
+            role,
             password: hashedPass,
         });
+
+        console.debug("NEW ", newUser);
 
         // Generate the JWT token
         const token = generateToken(newUser._id);
@@ -87,7 +91,6 @@ const loginUser = async (req, res, next) => {
         return user;
     };
 
-    
     const isMatchPassword = async (password, userPassword) => {
         const isMatch = await bcrypt.compare(password, userPassword);
 
