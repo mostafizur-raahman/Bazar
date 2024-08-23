@@ -13,8 +13,6 @@ export const readFactory = (model, options = {}) => {
             const { searchFields = [], aggregationPipeline = [] } = options;
             const id = req.query.id;
 
-            console.debug("ID:", id);
-
             if (id) {
                 // Validate ID format
                 if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -22,7 +20,7 @@ export const readFactory = (model, options = {}) => {
                 }
 
                 // Retrieve a single document if an ID is provided
-                const document = await model.aggregate([
+                const documents = await model.aggregate([
                     {
                         $match: {
                             _id: new mongoose.Types.ObjectId(id),
@@ -32,9 +30,7 @@ export const readFactory = (model, options = {}) => {
                     ...aggregationPipeline,
                 ]);
 
-                console.debug("DOCUMENT:", document);
-
-                if (!document || document.length === 0) {
+                if (documents.length === 0) {
                     return next(
                         createHttpError(
                             404,
@@ -45,7 +41,7 @@ export const readFactory = (model, options = {}) => {
 
                 return res.status(200).json({
                     message: "Document retrieved successfully",
-                    data: document[0],
+                    data: documents[0],
                 });
             }
 
