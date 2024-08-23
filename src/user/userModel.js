@@ -6,10 +6,10 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-        roleId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Role",
-            default: "66c75595984462d6e4cc083f", // customer
+        accountType: {
+            type: String,
+            enum: ["CUSTOMER", "ADMIN", "MERCHANT"],
+            default: "CUSTOMER",
         },
         email: {
             type: String,
