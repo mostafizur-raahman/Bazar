@@ -1,11 +1,12 @@
 import createHttpError from "http-errors";
 import userModel from "./userModel.js";
+import roleModel from "../role/roleModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { config } from "../config/config.js";
 
 const createUser = async (req, res, next) => {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, accountType } = req.body;
 
     const validateUserInput = (name, email, password) => {
         if (!name || !email || !password) {
@@ -30,8 +31,21 @@ const createUser = async (req, res, next) => {
         });
     };
 
+    const isRoleExist = async (accountType) => {
+        const role = await roleModel.findOne({
+            name: accountType,
+            isDeleted: false,
+        });
+
+        if (!role) {
+            return next(createHttpError(500, "Can not find role "));
+        }
+
+        return role;
+    };
+
     try {
-        console.debug("BODY _____________", req.body);
+        // TODO: validate req and need schema validation
         // Validate user input
         validateUserInput(name, email, password);
 
@@ -41,11 +55,16 @@ const createUser = async (req, res, next) => {
         // Hash the password
         const hashedPass = await hashPassword(password);
 
+        // role
+
+        const role = accountType && (await isRoleExist(accountType));
+
+        console.debug("ROLE : ", role);
+
         // Create the new user
         const newUser = await userModel.create({
             name,
             email,
-            role,
             password: hashedPass,
         });
 
