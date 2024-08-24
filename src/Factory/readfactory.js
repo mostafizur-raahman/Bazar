@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 /**
  * Factory function to create read operations for different models.
- * @param {Object} model - Mongoose model to use for reading data.
+ * @param {Object} model - Mongoose model to use for reading docs.
  * @param {Object} options - Options including search fields and aggregation pipeline.
  * @returns {Function} - Express middleware function to handle read requests.
  */
@@ -45,7 +45,7 @@ export const readFactory = (model, options = {}) => {
 
                 return res.status(200).json({
                     message: "Document retrieved successfully",
-                    data: document[0],
+                    docs: document[0],
                 });
             }
 
@@ -78,7 +78,7 @@ export const readFactory = (model, options = {}) => {
 
             res.status(200).json({
                 message: "Documents retrieved successfully",
-                data: documents,
+                docs: documents,
                 totalCount,
                 totalPages: Math.ceil(totalCount / limit),
                 currentPage: page,
