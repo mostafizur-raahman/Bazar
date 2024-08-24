@@ -3,17 +3,21 @@ import createHttpError from "http-errors";
 import { config } from "../config/config.js";
 
 export const authenticate = (req, res, next) => {
-    const token = req.header("Authorization")?.replace("Bearer ", "");
+    const authHeader = req.headers.authorization; // Lowercase 'authorization'
 
-    if (!token) {
-        return next(createHttpError(401, "Unathorization user"));
+    console.debug("AUTH header ", authHeader);
+
+    if (!authHeader) {
+        return next(createHttpError(401, "Unauthorized: No token provided"));
     }
+
+    const token = authHeader;
 
     try {
         const decoded = jwt.verify(token, config.jwt_secret);
-        req.user = decoded;
+        req.user = { _id: decoded.sub }; // Store the user ID in req.user._id
         next();
     } catch (error) {
-        next(createHttpError(400, "Invalid token."));
+        return next(createHttpError(401, "Unauthorized: Invalid token"));
     }
 };

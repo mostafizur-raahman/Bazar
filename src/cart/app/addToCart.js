@@ -1,6 +1,7 @@
 import { Cart } from "../cartModel.js";
 import productModel from "../../product/productModel.js";
 import createHttpError from "http-errors";
+import { objectId } from "../../../public/lib.js";
 
 export const addToCart = async (req, res, next) => {
     try {
@@ -11,7 +12,7 @@ export const addToCart = async (req, res, next) => {
 
         // Find the product and the specific variant by SKU
         const product = await productModel.findOne({
-            _id: productId,
+            _id: objectId(productId),
             "variants.sku": sku,
             isDeleted: false,
         });
@@ -35,6 +36,12 @@ export const addToCart = async (req, res, next) => {
             if (itemIndex > -1) {
                 // Update quantity if item already exists
                 cart.items[itemIndex].quantity += quantity;
+
+                if (cart.items[itemIndex].quantity <= 0) {
+                    return next(
+                        createHttpError(400, "Product quentity at least 1")
+                    );
+                }
             } else {
                 // Add new item with variant details
                 cart.items.push({ product: productId, sku, quantity });
@@ -52,6 +59,7 @@ export const addToCart = async (req, res, next) => {
             .status(200)
             .json({ message: "Cart updated successfully", cart });
     } catch (error) {
+        console.debug("ERROR : ", error);
         next(createHttpError(500, "Error while updating cart"));
     }
 };
